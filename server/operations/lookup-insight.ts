@@ -1,6 +1,6 @@
-import type { Insight } from "$models/insight.ts";
+import type { Insight } from "../models/insight.ts";
 import type { HasDBClient } from "../shared.ts";
-import type * as insightsTable from "$tables/insights.ts";
+import type * as insightsTable from "../tables/insights.ts";
 
 type Input = HasDBClient & {
   id: number;
@@ -15,7 +15,12 @@ export default (input: Input): Insight | undefined => {
   >`SELECT * FROM insights WHERE id = ${input.id} LIMIT 1`;
 
   if (row) {
-    const result = { ...row, createdAt: new Date(row.createdAt) };
+    const result: Insight = {
+      id: row.id,
+      brandId: row.brand,
+      date: new Date(row.createdAt),
+      text: row.text,
+    };
     console.log("Insight retrieved:", result);
     return result;
   }

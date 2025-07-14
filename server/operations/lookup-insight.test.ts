@@ -1,31 +1,32 @@
-import { beforeAll, describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
-import { withDB } from "../testing.ts";
+import { beforeAll, describe, it } from "jsr:@std/testing/bdd";
 import type { Insight } from "$models/insight.ts";
+import { withDB } from "../testing.ts";
 import lookupInsight from "./lookup-insight.ts";
 
-describe("listing insights in the database", () => {
-  describe("specified insight not in the DB", () => {
+describe("looking up insights in the database", () => {
+  describe("insight does not exist", () => {
     withDB((fixture) => {
       let result: Insight | undefined;
 
       beforeAll(() => {
-        result = lookupInsight({ ...fixture, id: 0 });
+        result = lookupInsight({ ...fixture, id: 1 });
       });
 
-      it("returns nothing", () => {
+      it("returns undefined", () => {
         expect(result).toBeUndefined();
       });
     });
   });
 
-  describe("insight is in the DB", () => {
+  describe("insight exists", () => {
     withDB((fixture) => {
+      const testDate = new Date();
       const insights: Insight[] = [
-        { id: 1, brand: 0, createdAt: new Date(), text: "1" },
-        { id: 2, brand: 0, createdAt: new Date(), text: "2" },
-        { id: 3, brand: 1, createdAt: new Date(), text: "3" },
-        { id: 4, brand: 4, createdAt: new Date(), text: "4" },
+        { id: 1, brandId: 0, date: testDate, text: "1" },
+        { id: 2, brandId: 0, date: testDate, text: "2" },
+        { id: 3, brandId: 1, date: testDate, text: "3" },
+        { id: 4, brandId: 4, date: testDate, text: "4" },
       ];
 
       let result: Insight | undefined;
@@ -33,14 +34,15 @@ describe("listing insights in the database", () => {
       beforeAll(() => {
         fixture.insights.insert(
           insights.map((it) => ({
-            ...it,
-            createdAt: it.createdAt.toISOString(),
+            brand: it.brandId,
+            createdAt: it.date.toISOString(),
+            text: it.text,
           })),
         );
         result = lookupInsight({ ...fixture, id: 3 });
       });
 
-      it("returns the expected insight", () => {
+      it("returns the insight", () => {
         expect(result).toEqual(insights[2]);
       });
     });
